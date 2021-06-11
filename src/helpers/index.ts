@@ -1,1 +1,2 @@
-export * from './scan-dir';
+export * from './scan-dir.helper';
+export * from './progress.helper';
