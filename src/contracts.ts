@@ -1,16 +1,11 @@
 import { Stats } from 'fs';
 
-export type ICommandLineArgs = {
-    sourceDir?: string;
-    glob?: string;
-    help: boolean;
-};
+export type PathType = 'file' | 'directory';
 
 export type ScanResult = {
     type: 'scanResult';
-    path: string;
-    isFile: boolean;
-    isDirectory: boolean;
+    sourcePath: string;
+    pathType: PathType;
     stats: Stats;
 };
 

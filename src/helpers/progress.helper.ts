@@ -7,7 +7,7 @@ export function streamTotal(scanResults: Observable<ScanResult>): Observable<Tot
         scan<ScanResult, TotalItems>(
             (totals, file) => ({
                 ...totals,
-                files: file.isDirectory ? totals.files : totals.files + 1,
+                files: file.pathType === 'directory' ? totals.files : totals.files + 1,
                 bytes: totals.bytes + file.stats.size,
             }),
             { type: 'progressTotal', files: 0, bytes: 0 }
@@ -35,7 +35,7 @@ function updateProgress(progress: ItemProgress, result: ScanResult | TotalItems)
             return {
                 ...progress,
                 completedBytes: progress.completedBytes + result.stats.size,
-                completedFiles: result.isDirectory ? progress.completedFiles : progress.completedFiles + 1,
+                completedFiles: result.pathType === 'directory' ? progress.completedFiles : progress.completedFiles + 1,
             };
     }
 }
