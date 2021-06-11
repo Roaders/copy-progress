@@ -10,15 +10,21 @@ import glob from 'glob';
 import print from 'message-await';
 import chalk from 'chalk';
 import { resolve } from 'path';
+import prettyBytes from 'pretty-bytes';
+
+const barNameLength = 10;
 
 async function copyDirProgress() {
     const args = parse<ICommandLineArgs>(usageGuideInfo.arguments, usageGuideInfo.parseOptions);
 
     const scanResults = await loadFiles(args);
 
-    const progressBar = new MultiBar({ hideCursor: true });
-    const filesBar = progressBar.create(0, 0, 'Files');
-    const bytesBar = progressBar.create(0, 0, 'Bytes');
+    const progressBar = new MultiBar({
+        hideCursor: true,
+        format: `{barName} [{bar}] {percentage}% | ETA: {eta}s | {formattedValue}/{formattedTotal}`,
+    });
+    const filesBar = progressBar.create(0, 0, { barName: barTitle('Files:') });
+    const bytesBar = progressBar.create(0, 0, { barName: barTitle('Bytes:') });
 
     const totals = streamTotal(scanResults);
     const copyResults = scanResults.pipe(mergeMap(copyFile, 10));
@@ -27,9 +33,15 @@ async function copyDirProgress() {
     progress.subscribe(
         (result) => {
             filesBar.setTotal(result.totalFiles);
-            filesBar.update(result.completedFiles);
+            filesBar.update(result.completedFiles, {
+                formattedValue: result.completedFiles,
+                formattedTotal: result.totalFiles,
+            });
             bytesBar.setTotal(result.totalBytes);
-            bytesBar.update(result.completedBytes);
+            bytesBar.update(result.completedBytes, {
+                formattedValue: prettyBytes(result.completedBytes),
+                formattedTotal: prettyBytes(result.totalBytes),
+            });
         },
         undefined,
         () => progressBar.stop()
@@ -48,6 +60,14 @@ async function loadFiles(args: ICommandLineArgs): Promise<Observable<ScanResult>
         );
         process.exit(1);
     }
+}
+
+function barTitle(name: string): string {
+    while (name.length < barNameLength) {
+        name = name + ' ';
+    }
+
+    return name;
 }
 
 function promisifyGlob(pattern: string): Promise<string[]> {
