@@ -3,7 +3,7 @@
 import { from, merge, Observable } from 'rxjs';
 import { mergeMap, shareReplay } from 'rxjs/operators';
 import { createResult, streamProgress, streamScanPathResults, streamTotal } from '../helpers';
-import { MultiBar } from 'cli-progress';
+import { MultiBar, SingleBar } from 'cli-progress';
 import { CopyFileHelper } from '../helpers/copy-file.helper';
 import { parse } from 'ts-command-line-args';
 import { commandName, ICommandLineArgs, usageGuideInfo } from '../markdown.constants';
@@ -32,8 +32,17 @@ async function copyDirProgress() {
         hideCursor: true,
         format: `{barName} [{bar}] {percentage}%${etaFormat} | {formattedValue}/{formattedTotal}`,
     });
-    const filesBar = progressBar.create(0, 0, { barName: barTitle('Files:') });
-    const bytesBar = progressBar.create(0, 0, { barName: barTitle('Bytes:') });
+
+    let filesBar: SingleBar | undefined;
+    let bytesBar: SingleBar | undefined;
+
+    if (args.bar === 'files' || args.bar === 'both') {
+        filesBar = progressBar.create(0, 0, { barName: barTitle('Files:') });
+    }
+
+    if (args.bar === 'bytes' || args.bar === 'both') {
+        bytesBar = progressBar.create(0, 0, { barName: barTitle('Bytes:') });
+    }
 
     const totals = streamTotal(files);
     const copyResults = files.pipe(mergeMap((result) => copyHelper.performCopy(result), args.concurrentCopy));
@@ -46,16 +55,20 @@ async function copyDirProgress() {
 
     progress.subscribe(
         (result) => {
-            filesBar.setTotal(result.totalFiles);
-            filesBar.update(result.completedFiles, {
-                formattedValue: result.completedFiles,
-                formattedTotal: result.totalFiles,
-            });
-            bytesBar.setTotal(result.totalBytes);
-            bytesBar.update(result.completedBytes, {
-                formattedValue: prettyBytes(result.completedBytes),
-                formattedTotal: prettyBytes(result.totalBytes),
-            });
+            if (filesBar != null) {
+                filesBar.setTotal(result.totalFiles);
+                filesBar.update(result.completedFiles, {
+                    formattedValue: result.completedFiles,
+                    formattedTotal: result.totalFiles,
+                });
+            }
+            if (bytesBar != null) {
+                bytesBar.setTotal(result.totalBytes);
+                bytesBar.update(result.completedBytes, {
+                    formattedValue: prettyBytes(result.completedBytes),
+                    formattedTotal: prettyBytes(result.totalBytes),
+                });
+            }
 
             totalFiles = result.totalFiles;
             totalBytes = result.totalBytes;
