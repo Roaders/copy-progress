@@ -11,9 +11,6 @@ async function runExample() {
     streamScanPathResults('node_modules')
         .pipe()
         .subscribe(
-            (result) => {
-                //console.log(result.path);
-            },
             (error) => console.error(error),
             () => console.log(`Stream Elapsed: ${Date.now() - start}`)
         );

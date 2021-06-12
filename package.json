@@ -11,7 +11,10 @@
         "build": "tsc",
         "build:watch": "tsc --watch",
         "lint": "eslint . --ext .ts,.d.ts,.js",
-        "lint:fix": "eslint . --ext .ts,.d.ts,.js --fix"
+        "lint:fix": "eslint . --ext .ts,.d.ts,.js --fix",
+        "write-markdown": "npx write-markdown -m readme.md -j dist/markdown.constants.js",
+        "verify-markdown": "npx write-markdown -v -m readme.md -j dist/markdown.constants.js",
+        "prepublishOnly": "concurrently --kill-others-on-fail npm:lint npm:build npm:verify-markdown"
     },
     "repository": {
         "type": "git",
@@ -33,6 +36,7 @@
         "@types/node": "^12.20.7",
         "@typescript-eslint/eslint-plugin": "^4.20.0",
         "@typescript-eslint/parser": "^4.20.0",
+        "concurrently": "^6.2.0",
         "eslint": "^7.19.0",
         "eslint-config-prettier": "^7.2.0",
         "eslint-config-standard": "^16.0.2",
