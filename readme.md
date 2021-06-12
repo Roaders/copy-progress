@@ -53,7 +53,7 @@ copy-progress -o mySourceFolder -o myDestinationFolder -b bytes
 
 [//]: ####ts-command-line-args_write-markdown_replaceBelow
 
-### All Options
+### Options
 
 | Argument | Alias | Type | Description |
 |-|-|-|-|

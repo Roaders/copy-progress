@@ -52,8 +52,15 @@ export const usageGuideInfo: UsageGuideConfig<ICommandLineArgs> = {
     },
     parseOptions: {
         optionsHeaderLevel: 3,
-        optionsHeaderText: 'All Options',
         helpArg: 'help',
+        headerContentSections: [
+            {
+                header: `copy-progress`,
+                includeIn: 'cli',
+                content:
+                    'Copies files using either a source folder or a glob pattern. Copy progress is displayed in the terminal using progress bars and an optional ETA indicator.',
+            },
+        ],
     },
 };
 
