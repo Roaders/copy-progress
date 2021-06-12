@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
 import { from, merge, Observable } from 'rxjs';
-import { mergeMap, shareReplay } from 'rxjs/operators';
-import { createResult, streamProgress, streamScanPathResults, streamTotal } from '../helpers';
+import { map, mergeMap, shareReplay } from 'rxjs/operators';
+import { createScanResult, streamProgress, streamScanPathResults, streamTotal } from '../helpers';
 import { MultiBar, SingleBar } from 'cli-progress';
 import { CopyFileHelper } from '../helpers/copy-file.helper';
 import { parse } from 'ts-command-line-args';
 import { commandName, ICommandLineArgs, usageGuideInfo } from '../markdown.constants';
-import { ScanResult } from '../contracts';
+import { ICopyStats, IFileStats } from '../contracts';
 import glob from 'glob';
 import print from 'message-await';
 import chalk from 'chalk';
-import { resolve } from 'path';
+import { join } from 'path';
 import prettyBytes from 'pretty-bytes';
 import ms from 'ms';
 
@@ -45,7 +45,13 @@ async function copyDirProgress() {
     }
 
     const totals = streamTotal(files);
-    const copyResults = files.pipe(mergeMap((result) => copyHelper.performCopy(result), args.concurrentCopy));
+    const copyResults = files.pipe(
+        map<IFileStats, ICopyStats>((fileDetails) => ({
+            ...fileDetails,
+            destination: join(args.outDir, fileDetails.source),
+        })),
+        mergeMap((copyDetails) => copyHelper.performCopy(copyDetails), args.concurrentCopy)
+    );
     const progress = streamProgress(merge(copyResults, totals));
 
     const start = Date.now();
@@ -86,16 +92,15 @@ async function copyDirProgress() {
     );
 }
 
-async function loadFiles(args: ICommandLineArgs): Promise<{ files: Observable<ScanResult> }> {
-    let files: Observable<ScanResult>;
+async function loadFiles(args: ICommandLineArgs): Promise<{ files: Observable<IFileStats> }> {
+    let files: Observable<IFileStats>;
 
     if (args.glob != null) {
         const filesList = await print(`Scanning ${args.glob}`, { format: chalk.blue }).await(promisifyGlob(args.glob));
-        files = from(filesList).pipe(mergeMap(createResult), shareReplay());
+        files = from(filesList).pipe(mergeMap(createScanResult), shareReplay());
     } else if (args.sourceDir) {
         console.log(chalk.blue(`Scanning ${args.sourceDir}...`));
-        const root = resolve(args.sourceDir);
-        files = streamScanPathResults(root).pipe(shareReplay());
+        files = streamScanPathResults(args.sourceDir).pipe(shareReplay());
     } else {
         console.log(
             `${chalk.red('ERR:')} 'sourceDir' or 'glob' must be specified. Please see '${commandName} -h' for help.`
