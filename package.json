@@ -14,7 +14,8 @@
         "lint:fix": "eslint . --ext .ts,.d.ts,.js --fix",
         "write-markdown": "npx write-markdown -m readme.md -j dist/markdown.constants.js",
         "verify-markdown": "npx write-markdown -v -m readme.md -j dist/markdown.constants.js",
-        "prepublishOnly": "concurrently --kill-others-on-fail npm:lint npm:build npm:verify-markdown"
+        "verify-release": "concurrently --kill-others-on-fail npm:lint npm:build npm:verify-markdown",
+        "prepublishOnly": "npm run verify-release"
     },
     "repository": {
         "type": "git",
