@@ -1,4 +1,4 @@
-import { IFileStats, ITotals } from '../contracts';
+import { ICopyStats, IFileStats, ITotals } from '../contracts';
 
 export function isIFileStats(value: unknown): value is IFileStats {
     const stats = value as IFileStats;
@@ -8,4 +8,9 @@ export function isIFileStats(value: unknown): value is IFileStats {
 export function isITotals(value: unknown): value is ITotals {
     const stats = value as ITotals;
     return stats != null && typeof stats.files === 'number' && typeof stats.bytes === 'number';
+}
+
+export function isICopyStats(value: unknown): value is ICopyStats {
+    const stats = value as ICopyStats;
+    return isIFileStats(value) && typeof stats.source === 'string';
 }

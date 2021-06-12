@@ -1,13 +1,5 @@
 import { Stats } from 'fs';
 
-export interface IFileDetails {
-    source: string;
-}
-
-export interface IFileStats extends IFileDetails {
-    stats: Stats;
-}
-
 export type ScanOptions = {
     concurrency?: number;
 };
@@ -24,8 +16,18 @@ export type IProgress = {
     completedBytes: number;
 };
 
+export interface IFileDetails {
+    source: string;
+}
+
+export interface IFileStats extends IFileDetails {
+    stats: Stats;
+}
+
 export interface ICopyDetails extends IFileDetails {
     destination: string;
 }
 
 export interface ICopyStats extends IFileStats, ICopyDetails {}
+
+export type CopyDetails = ICopyStats | ICopyDetails;
