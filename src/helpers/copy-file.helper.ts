@@ -4,12 +4,9 @@ import mkdirp from 'mkdirp';
 import chalk from 'chalk';
 import { map, mergeMap, shareReplay } from 'rxjs/operators';
 import { dirname } from 'path';
-import { ICommandLineArgs } from '../markdown.constants';
 import { ICopyStats } from '../contracts';
 
 export class CopyFileHelper {
-    constructor(private readonly args: ICommandLineArgs) {}
-
     private readonly dirLookup: Record<string, Observable<string | undefined> | undefined> = {};
 
     public performCopy(copyDetails: ICopyStats): Observable<ICopyStats> {

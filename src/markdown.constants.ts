@@ -3,15 +3,15 @@ import { UsageGuideConfig } from 'ts-command-line-args';
 
 export type BarMode = 'files' | 'bytes' | 'both';
 
-export type ICommandLineArgs = {
+export interface ICommandLineArgs {
     sourceDir?: string;
     glob?: string;
     outDir: string;
-    help: boolean;
     concurrentCopy: number;
+    help: boolean;
     eta: boolean;
     bar: BarMode;
-};
+}
 
 export const commandName = 'copy-progress';
 const defaultConcurrentCopy = 1;

@@ -1,5 +1,9 @@
 import { Stats } from 'fs';
 
+export interface ICopyOptions {
+    concurrentCopy?: number;
+}
+
 export type ScanOptions = {
     concurrency?: number;
 };
