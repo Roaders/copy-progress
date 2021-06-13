@@ -2,9 +2,9 @@
     "name": "copy-progress",
     "version": "0.1.1",
     "description": "",
-    "main": "index.js",
+    "main": "dist/src/index.js",
     "bin": {
-        "copy-progress": "dist/bin/index.js"
+        "copy-progress": "dist/src/bin/index.js"
     },
     "scripts": {
         "clean": "rimraf dist tmpOutFolder",

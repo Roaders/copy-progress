@@ -3,3 +3,4 @@ node_modules/
 tsconfig.json
 .eslint.js
 tmpOutFolder/
+dist/examples/
