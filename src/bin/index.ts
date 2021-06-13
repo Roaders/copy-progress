@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 
-import { from, merge, Observable } from 'rxjs';
-import { mergeMap, shareReplay } from 'rxjs/operators';
-import { createResult, streamProgress, streamScanPathResults, streamTotal } from '../helpers';
+import { from, Observable } from 'rxjs';
+import { map, mergeMap, shareReplay } from 'rxjs/operators';
+import { createScanResult, streamScanPathResults } from '../helpers';
 import { MultiBar, SingleBar } from 'cli-progress';
-import { CopyFileHelper } from '../helpers/copy-file.helper';
 import { parse } from 'ts-command-line-args';
 import { commandName, ICommandLineArgs, usageGuideInfo } from '../markdown.constants';
-import { ScanResult } from '../contracts';
+import { ICopyStats, IFileStats } from '../contracts';
 import glob from 'glob';
 import print from 'message-await';
 import chalk from 'chalk';
-import { resolve } from 'path';
+import { join } from 'path';
 import prettyBytes from 'pretty-bytes';
 import ms from 'ms';
+import { copyFiles } from '../';
 
 const barNameLength = 10;
 
@@ -21,39 +21,27 @@ let progressBar: MultiBar;
 
 async function copyDirProgress() {
     const args = parse<ICommandLineArgs>(usageGuideInfo.arguments, usageGuideInfo.parseOptions);
-    const copyHelper = new CopyFileHelper(args);
-    const { files } = await loadFiles(args);
+    const files = await loadFiles(args);
 
     console.log(' ');
 
-    const etaFormat = args.eta ? ' | ETA: {eta}s' : '';
+    const copyStats = files.pipe(
+        map<IFileStats, ICopyStats>((fileDetails) => ({
+            ...fileDetails,
+            destination: join(args.outDir, fileDetails.source),
+        })),
+        shareReplay()
+    );
 
-    progressBar = new MultiBar({
-        hideCursor: true,
-        format: `{barName} [{bar}] {percentage}%${etaFormat} | {formattedValue}/{formattedTotal}`,
-    });
-
-    let filesBar: SingleBar | undefined;
-    let bytesBar: SingleBar | undefined;
-
-    if (args.bar === 'files' || args.bar === 'both') {
-        filesBar = progressBar.create(0, 0, { barName: barTitle('Files:') });
-    }
-
-    if (args.bar === 'bytes' || args.bar === 'both') {
-        bytesBar = progressBar.create(0, 0, { barName: barTitle('Bytes:') });
-    }
-
-    const totals = streamTotal(files);
-    const copyResults = files.pipe(mergeMap((result) => copyHelper.performCopy(result), args.concurrentCopy));
-    const progress = streamProgress(merge(copyResults, totals));
+    const progressStream = copyFiles(copyStats);
+    const { filesBar, bytesBar } = createProgressBars(args);
 
     const start = Date.now();
 
     let totalFiles = 0;
     let totalBytes = 0;
 
-    progress.subscribe(
+    progressStream.subscribe(
         (result) => {
             if (filesBar != null) {
                 filesBar.setTotal(result.totalFiles);
@@ -86,16 +74,37 @@ async function copyDirProgress() {
     );
 }
 
-async function loadFiles(args: ICommandLineArgs): Promise<{ files: Observable<ScanResult> }> {
-    let files: Observable<ScanResult>;
+function createProgressBars(args: ICommandLineArgs) {
+    const etaFormat = args.eta ? ' | ETA: {eta}s' : '';
+
+    progressBar = new MultiBar({
+        hideCursor: true,
+        format: `{barName} [{bar}] {percentage}%${etaFormat} | {formattedValue}/{formattedTotal}`,
+    });
+
+    let filesBar: SingleBar | undefined;
+    let bytesBar: SingleBar | undefined;
+
+    if (args.bar === 'files' || args.bar === 'both') {
+        filesBar = progressBar.create(0, 0, { barName: barTitle('Files:') });
+    }
+
+    if (args.bar === 'bytes' || args.bar === 'both') {
+        bytesBar = progressBar.create(0, 0, { barName: barTitle('Bytes:') });
+    }
+
+    return { progressBar, filesBar, bytesBar };
+}
+
+async function loadFiles(args: ICommandLineArgs): Promise<Observable<IFileStats>> {
+    let files: Observable<IFileStats>;
 
     if (args.glob != null) {
         const filesList = await print(`Scanning ${args.glob}`, { format: chalk.blue }).await(promisifyGlob(args.glob));
-        files = from(filesList).pipe(mergeMap(createResult), shareReplay());
+        files = from(filesList).pipe(mergeMap(createScanResult));
     } else if (args.sourceDir) {
         console.log(chalk.blue(`Scanning ${args.sourceDir}...`));
-        const root = resolve(args.sourceDir);
-        files = streamScanPathResults(root).pipe(shareReplay());
+        files = streamScanPathResults(args.sourceDir);
     } else {
         console.log(
             `${chalk.red('ERR:')} 'sourceDir' or 'glob' must be specified. Please see '${commandName} -h' for help.`
@@ -103,7 +112,7 @@ async function loadFiles(args: ICommandLineArgs): Promise<{ files: Observable<Sc
         process.exit(1);
     }
 
-    return { files };
+    return files;
 }
 
 function barTitle(name: string): string {

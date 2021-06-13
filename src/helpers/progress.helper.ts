@@ -1,24 +1,24 @@
 import { Observable } from 'rxjs';
 import { scan } from 'rxjs/operators';
-import { TotalItems, ScanResult, ItemProgress } from '../contracts';
+import { ITotals, IProgress, IFileStats } from '../contracts';
+import { isIFileStats, isITotals } from './type-predicates';
 
-export function streamTotal(scanResults: Observable<ScanResult>): Observable<TotalItems> {
+export function streamTotal(scanResults: Observable<IFileStats>): Observable<ITotals> {
     return scanResults.pipe(
-        scan<ScanResult, TotalItems>(
+        scan<IFileStats, ITotals>(
             (totals, file) => ({
                 ...totals,
-                files: file.pathType === 'directory' ? totals.files : totals.files + 1,
+                files: totals.files + 1,
                 bytes: totals.bytes + file.stats.size,
             }),
-            { type: 'progressTotal', files: 0, bytes: 0 }
+            { files: 0, bytes: 0 }
         )
     );
 }
 
-export function streamProgress(results: Observable<ScanResult | TotalItems>): Observable<ItemProgress> {
+export function streamProgress(results: Observable<IFileStats | ITotals>): Observable<IProgress> {
     return results.pipe(
-        scan<ScanResult | TotalItems, ItemProgress>(updateProgress, {
-            type: 'itemProgress',
+        scan<IFileStats | ITotals, IProgress>(updateProgress, {
             totalFiles: 0,
             totalBytes: 0,
             completedFiles: 0,
@@ -27,15 +27,16 @@ export function streamProgress(results: Observable<ScanResult | TotalItems>): Ob
     );
 }
 
-function updateProgress(progress: ItemProgress, result: ScanResult | TotalItems): ItemProgress {
-    switch (result.type) {
-        case 'progressTotal':
-            return { ...progress, totalBytes: result.bytes, totalFiles: result.files };
-        case 'scanResult':
-            return {
-                ...progress,
-                completedBytes: progress.completedBytes + result.stats.size,
-                completedFiles: result.pathType === 'directory' ? progress.completedFiles : progress.completedFiles + 1,
-            };
+function updateProgress(progress: IProgress, result: IFileStats | ITotals): IProgress {
+    if (isIFileStats(result)) {
+        return {
+            ...progress,
+            completedBytes: progress.completedBytes + result.stats.size,
+            completedFiles: progress.completedFiles + 1,
+        };
+    } else if (isITotals(result)) {
+        return { ...progress, totalBytes: result.bytes, totalFiles: result.files };
+    } else {
+        return progress;
     }
 }

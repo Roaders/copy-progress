@@ -1,28 +1,37 @@
 import { Stats } from 'fs';
 
-export type PathType = 'file' | 'directory';
-
-export type ScanResult = {
-    type: 'scanResult';
-    sourcePath: string;
-    pathType: PathType;
-    stats: Stats;
-};
+export interface ICopyOptions {
+    concurrentCopy?: number;
+}
 
 export type ScanOptions = {
     concurrency?: number;
 };
 
-export type TotalItems = {
-    type: 'progressTotal';
+export type ITotals = {
     files: number;
     bytes: number;
 };
 
-export type ItemProgress = {
-    type: 'itemProgress';
+export type IProgress = {
     totalFiles: number;
     totalBytes: number;
     completedFiles: number;
     completedBytes: number;
 };
+
+export interface IFileDetails {
+    source: string;
+}
+
+export interface IFileStats extends IFileDetails {
+    stats: Stats;
+}
+
+export interface ICopyDetails extends IFileDetails {
+    destination: string;
+}
+
+export interface ICopyStats extends IFileStats, ICopyDetails {}
+
+export type CopyDetails = ICopyStats | ICopyDetails;
