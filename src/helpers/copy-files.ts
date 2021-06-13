@@ -5,9 +5,12 @@ import { CopyFileHelper } from './copy-file.helper';
 import { streamProgress, streamTotal } from './progress.helper';
 import { createScanResult } from './scan-dir.helper';
 import { isICopyStats } from './type-predicates';
+import { promisify } from 'util';
+import { copyFile } from 'fs';
 
 export const defaultOptions: Required<ICopyOptions> = {
     concurrentCopy: 1,
+    copyFunction: promisify(copyFile),
 };
 
 export function copyFiles(
@@ -15,7 +18,7 @@ export function copyFiles(
     options?: ICopyOptions
 ): Observable<IProgress> {
     const requiredOptions = { ...defaultOptions, ...options };
-    const copyHelper = new CopyFileHelper();
+    const copyHelper = new CopyFileHelper(requiredOptions);
 
     const copyStats = (Array.isArray(files) ? from(files) : files).pipe(mergeMap(convertToCopyStats), shareReplay());
     const totals = streamTotal(copyStats);

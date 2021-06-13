@@ -1,7 +1,12 @@
 import { Stats } from 'fs';
+import { Observable } from 'rxjs';
+
+export type ProgressCopyFileFunction<T> = (source: string, destination: string) => Observable<T>;
+export type AsyncCopyFileFunction = (source: string, destination: string) => Promise<unknown>;
 
 export interface ICopyOptions {
     concurrentCopy?: number;
+    copyFunction?: ProgressCopyFileFunction<unknown> | AsyncCopyFileFunction;
 }
 
 export type ScanOptions = {
