@@ -4,6 +4,9 @@ import { map } from 'rxjs/operators';
 import copyFiles, { streamScanPathResults } from '../src';
 import { ICopyDetails } from '../src/contracts';
 
+/**
+ * scans the provided path for all files in all sub directories
+ */
 const filesToCopy = streamScanPathResults('../node_modules');
 
 const copyDetails: Observable<ICopyDetails> = filesToCopy.pipe(

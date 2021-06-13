@@ -14,3 +14,7 @@ export function isICopyStats(value: unknown): value is ICopyStats {
     const stats = value as ICopyStats;
     return isIFileStats(value) && typeof stats.source === 'string';
 }
+
+export function isDefined<T>(value: T | null | undefined): value is T {
+    return value != null;
+}

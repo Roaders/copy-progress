@@ -1,12 +1,17 @@
 import { Stats } from 'fs';
 import { Observable } from 'rxjs';
 
-export type ProgressCopyFileFunction<T> = (source: string, destination: string) => Observable<T>;
-export type AsyncCopyFileFunction = (source: string, destination: string) => Promise<unknown>;
+export type ProgressCopyFileFunction<T> = (source: string, destination: string, fileStats: Stats) => Observable<T>;
+export type AsyncCopyFileFunction = (source: string, destination: string, fileStats: Stats) => Promise<unknown>;
 
 export interface ICopyOptions {
     concurrentCopy?: number;
-    copyFunction?: ProgressCopyFileFunction<unknown> | AsyncCopyFileFunction;
+    copyFunction?: AsyncCopyFileFunction;
+}
+
+export interface ICopyFileProgressOptions<T> {
+    concurrentCopy?: number;
+    copyFunction: ProgressCopyFileFunction<T>;
 }
 
 export type ScanOptions = {
@@ -18,12 +23,29 @@ export type ITotals = {
     bytes: number;
 };
 
-export type IProgress = {
+/**
+ * Mostly copied from progress-stream types
+ */
+export interface IStreamProgress {
+    type: 'fileStreamProgress';
+    stats: IFileStats;
+    percentage: number;
+    transferred: number;
+    length: number;
+    remaining: number;
+    eta: number;
+    runtime: number;
+    delta: number;
+    speed: number;
+}
+
+export interface IFilesProgress {
+    type: 'filesProgress';
     totalFiles: number;
-    totalBytes: number;
     completedFiles: number;
+    totalBytes: number;
     completedBytes: number;
-};
+}
 
 export interface IFileDetails {
     source: string;

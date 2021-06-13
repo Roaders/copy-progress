@@ -14,6 +14,8 @@ const copyDetails: Observable<ICopyDetails> = filesToCopy.pipe(
 );
 
 type MyProgressInfo = {
+    type: 'myProgress';
+    fileName: string;
     bytesComplete: number;
     bytesLeft: number;
     bytesPerSecond: number;
@@ -25,7 +27,15 @@ function myCopyFunction(source: string, destination: string): Observable<MyProgr
 }
 
 copyFiles(copyDetails, { copyFunction: myCopyFunction }).subscribe(
-    (progress) => console.log(`Progress: ${progress.completedBytes}/${progress.totalBytes} Bytes`),
+    (progress) => {
+        switch (progress.type) {
+            case 'filesProgress':
+                console.log(`Progress: ${progress.completedBytes}/${progress.totalBytes} Bytes`);
+                break;
+            case 'myProgress':
+                console.log(`${progress.fileName}: ${progress.bytesPerSecond}`);
+        }
+    },
     (error) => console.log(error),
     () => console.log(`Completed`)
 );

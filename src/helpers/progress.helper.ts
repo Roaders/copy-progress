@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import { scan } from 'rxjs/operators';
-import { ITotals, IProgress, IFileStats } from '../contracts';
+import { ITotals, IFilesProgress, IFileStats } from '../contracts';
 import { isIFileStats, isITotals } from './type-predicates';
 
 export function streamTotal(scanResults: Observable<IFileStats>): Observable<ITotals> {
@@ -16,9 +16,10 @@ export function streamTotal(scanResults: Observable<IFileStats>): Observable<ITo
     );
 }
 
-export function streamProgress(results: Observable<IFileStats | ITotals>): Observable<IProgress> {
+export function streamProgress(results: Observable<IFileStats | ITotals>): Observable<IFilesProgress> {
     return results.pipe(
-        scan<IFileStats | ITotals, IProgress>(updateProgress, {
+        scan<IFileStats | ITotals, IFilesProgress>(updateProgress, {
+            type: 'filesProgress',
             totalFiles: 0,
             totalBytes: 0,
             completedFiles: 0,
@@ -27,7 +28,7 @@ export function streamProgress(results: Observable<IFileStats | ITotals>): Obser
     );
 }
 
-function updateProgress(progress: IProgress, result: IFileStats | ITotals): IProgress {
+function updateProgress(progress: IFilesProgress, result: IFileStats | ITotals): IFilesProgress {
     if (isIFileStats(result)) {
         return {
             ...progress,
