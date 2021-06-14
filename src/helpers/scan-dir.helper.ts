@@ -1,9 +1,9 @@
-import { join, resolve } from 'path';
+import { join } from 'path';
 import { stat, readdir } from 'fs';
 import { promisify } from 'util';
 import { ScanOptions, IFileStats } from '../contracts';
 import { Observable, from, of } from 'rxjs';
-import { mergeMap, tap } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
 
 const statAsync = promisify(stat);
 const readdirAsync = promisify(readdir);

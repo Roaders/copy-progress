@@ -1,6 +1,6 @@
 import { from, merge, Observable, isObservable } from 'rxjs';
 import mkdirp from 'mkdirp';
-import { filter, map, mergeMap, shareReplay, tap, takeLast } from 'rxjs/operators';
+import { filter, map, mergeMap, shareReplay, takeLast } from 'rxjs/operators';
 import { dirname } from 'path';
 import { ICopyFileProgressOptions, ICopyOptions, ICopyStats } from '../contracts';
 import { isDefined, isICopyStats } from './type-predicates';

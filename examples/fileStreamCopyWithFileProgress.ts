@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import { join, relative } from 'path';
 import prettyBytes from 'pretty-bytes';
 import { Observable } from 'rxjs';

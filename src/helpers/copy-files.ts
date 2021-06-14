@@ -1,5 +1,5 @@
 import { Observable, from, merge, of } from 'rxjs';
-import { mergeMap, shareReplay, map, filter, tap } from 'rxjs/operators';
+import { mergeMap, shareReplay, map, filter } from 'rxjs/operators';
 import {
     ICopyOptions,
     CopyDetails,
