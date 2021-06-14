@@ -5,12 +5,12 @@ import { dirname } from 'path';
 import { ICopyFileProgressOptions, ICopyOptions, ICopyStats } from '../contracts';
 import { isDefined, isICopyStats } from './type-predicates';
 
-export class CopyFileHelper {
-    constructor(private readonly options: Required<ICopyOptions | ICopyFileProgressOptions<unknown>>) {}
+export class CopyFileHelper<TProgress, TOptions extends Required<ICopyOptions | ICopyFileProgressOptions<TProgress>>> {
+    constructor(private readonly options: TOptions) {}
 
     private readonly dirLookup: Record<string, Observable<string | undefined> | undefined> = {};
 
-    public performCopy(copyDetails: ICopyStats): Observable<ICopyStats> {
+    public performCopy(copyDetails: ICopyStats): Observable<ICopyStats | TProgress> {
         const dirPath = dirname(copyDetails.destination);
 
         const copyFileStream = this.createDirectory(dirPath).pipe(
@@ -27,14 +27,14 @@ export class CopyFileHelper {
                 takeLast(1),
                 map(() => copyDetails)
             )
-        ) as any;
+        );
     }
 
     private createDirectory(outPath: string): Observable<string | undefined> {
         return (this.dirLookup[outPath] = this.dirLookup[outPath] || createDirAsync(outPath));
     }
 
-    private copyFileAsync(copyDetails: ICopyStats): Observable<unknown> {
+    private copyFileAsync(copyDetails: ICopyStats): Observable<undefined | TProgress> {
         const copyResult = this.options.copyFunction(copyDetails.source, copyDetails.destination, copyDetails.stats);
 
         if (isObservable(copyResult)) {

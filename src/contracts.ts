@@ -14,6 +14,11 @@ export interface ICopyFileProgressOptions<T> {
     copyFunction: ProgressCopyFileFunction<T>;
 }
 
+export type RequiredOptions<
+    TProgress,
+    TOptions extends ICopyOptions | ICopyFileProgressOptions<TProgress>
+> = TOptions extends ICopyOptions ? Required<ICopyOptions> : Required<ICopyFileProgressOptions<TProgress>>;
+
 export type ScanOptions = {
     concurrency?: number;
 };

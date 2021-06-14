@@ -1,4 +1,4 @@
-import { Observable, from, merge, of } from 'rxjs';
+import { Observable, from, merge, of, EMPTY } from 'rxjs';
 import { mergeMap, shareReplay, map, filter } from 'rxjs/operators';
 import {
     ICopyOptions,
@@ -8,6 +8,7 @@ import {
     ICopyFileProgressOptions,
     ProgressCopyFileFunction,
     IStreamProgress,
+    RequiredOptions,
 } from '../contracts';
 import { CopyFileHelper } from './copy-file.helper';
 import { streamProgress, streamTotal } from './progress.helper';
@@ -29,12 +30,14 @@ export function copyFiles<TFileProgress>(
     options: ICopyFileProgressOptions<TFileProgress>
 ): Observable<IFilesProgress | TFileProgress>;
 export function copyFiles(files: FilesSource, options?: ICopyOptions): Observable<IFilesProgress>;
-export function copyFiles(
+export function copyFiles<TProgress, TOptions extends ICopyOptions | ICopyFileProgressOptions<TProgress>>(
     files: FilesSource,
-    options?: ICopyOptions | ICopyFileProgressOptions<unknown>
-): Observable<IFilesProgress> {
+    options?: TOptions
+): Observable<IFilesProgress | TProgress> {
     const requiredOptions = { ...defaultOptions, ...options };
-    const copyHelper = new CopyFileHelper(requiredOptions);
+    const copyHelper = new CopyFileHelper<TProgress, RequiredOptions<TProgress, TOptions>>(
+        requiredOptions as RequiredOptions<TProgress, TOptions>
+    );
 
     const copyStats = (Array.isArray(files) ? from(files) : files).pipe(mergeMap(convertToCopyStats), shareReplay());
     const totals = streamTotal(copyStats);
@@ -42,9 +45,10 @@ export function copyFiles(
         mergeMap((copyDetails) => copyHelper.performCopy(copyDetails), requiredOptions.concurrentCopy),
         shareReplay()
     );
-    const progress = streamProgress(merge(copyResults.pipe(filter(isICopyStats)), totals));
+    const filesProgress = streamProgress(merge(copyResults.pipe(filter(isICopyStats)), totals));
+    const fileProgress = copyResults.pipe(mergeMap((result) => (isICopyStats(result) ? EMPTY : of(result))));
 
-    return merge(progress, copyResults.pipe(filter((result) => !isICopyStats(result)))) as any;
+    return merge(filesProgress, fileProgress);
 }
 
 export const fileStreamCopy: ProgressCopyFileFunction<IStreamProgress> = (
