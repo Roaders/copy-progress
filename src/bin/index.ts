@@ -23,6 +23,8 @@ async function copyDirProgress() {
     const args = parse<ICommandLineArgs>(usageGuideInfo.arguments, usageGuideInfo.parseOptions);
     const files = await loadFiles(args);
 
+    console.log(args);
+
     console.log(' ');
 
     const copyStats = files.pipe(

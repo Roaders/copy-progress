@@ -62,7 +62,9 @@ copy-progress -o mySourceFolder -o myDestinationFolder -b bytes
 | **outDir** | **o** | string | folder to copy to. |
 | **concurrentCopy** | | number | number of concurrent copy operations to perform. Defaults to 1 |
 | **eta** | **e** | boolean | shows ETA of copy completion. For a lot of small files can be very inaccurate |
-| **bar** | **b** | parsebar | Shows either file count progress bar or bytes progress bar. If omitted both bars show |
+| **chunk** | **c** | boolean | Copies the files in chunks using a readFileStream and a writeFileStream. 'highWaterMark' determines chink size |
+| **highWaterMark** | **w** | '1kb' \| '4Mb' \| '1GB' | Highwatermark used for chunk size when copy method is 'chunk'. Defaults to '1048576'. |
+| **bar** | **b** | 'bytes' \| 'files' | Shows either file count progress bar or bytes progress bar. If omitted both bars show |
 | **help** | **h** | boolean | shows this help guide |
 
 [//]: ####ts-command-line-args_write-markdown_replaceAbove

@@ -12,8 +12,8 @@
         "build:watch": "tsc --watch",
         "lint": "eslint . --ext .ts,.d.ts,.js",
         "lint:fix": "eslint . --ext .ts,.d.ts,.js --fix",
-        "write-markdown": "npx write-markdown -m readme.md -j dist/markdown.constants.js",
-        "verify-markdown": "npx write-markdown -v -m readme.md -j dist/markdown.constants.js",
+        "write-markdown": "npx write-markdown -m readme.md -j dist/src/markdown.constants.js",
+        "verify-markdown": "npx write-markdown -v -m readme.md -j dist/src/markdown.constants.js",
         "verify-release": "concurrently --kill-others-on-fail npm:lint npm:build && npm run verify-markdown",
         "prepublishOnly": "npm run verify-release"
     },
@@ -62,7 +62,8 @@
         "mkdirp": "^1.0.4",
         "ms": "^2.1.2",
         "pretty-bytes": "^5.6.0",
+        "pretty-file-size": "^0.1.0",
         "progress-stream": "^2.0.0",
-        "ts-command-line-args": "^2.0.1"
+        "ts-command-line-args": "^2.0.2"
     }
 }
