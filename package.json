@@ -1,7 +1,7 @@
 {
     "name": "copy-progress",
     "version": "0.1.1",
-    "description": "",
+    "description": "Copies files from a source directory or a glob pattern to another folder and provides progress updates on command line or with progress events. Can be run as cli or with an api.",
     "main": "dist/src/index.js",
     "bin": {
         "copy-progress": "dist/src/bin/index.js"
@@ -21,8 +21,15 @@
         "type": "git",
         "url": "git+https://github.com/Roaders/copy-progress.git"
     },
-    "keywords": [],
-    "author": "",
+    "keywords": [
+        "copy",
+        "progress",
+        "typescript",
+        "directory",
+        "folder",
+        "glob"
+    ],
+    "author": "Giles Roadnight",
     "license": "ISC",
     "bugs": {
         "url": "https://github.com/Roaders/copy-progress/issues"
@@ -63,6 +70,6 @@
         "pretty-bytes": "^5.6.0",
         "pretty-file-size": "^0.1.0",
         "progress-stream": "^2.0.0",
-        "ts-command-line-args": "^2.0.2"
+        "ts-command-line-args": "^2.2.1"
     }
 }
