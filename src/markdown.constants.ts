@@ -49,11 +49,11 @@ export const usageGuideInfo: UsageGuideConfig<ICommandLineArgs> = {
         chunk: {
             type: Boolean,
             alias: 'c',
-            description: `Copies the files in chunks using a readFileStream and a writeFileStream. 'highWaterMark' determines chink size`,
+            description: `Copies the files in chunks using a readFileStream and a writeFileStream. 'highWaterMark' determines chunk size`,
         },
         highWaterMark: {
             type: parseBytes,
-            typeLabel: `'1kb' \\| '4Mb' \\| '1GB'`,
+            typeLabel: `'1kB' \\| '4MB' \\| '1GB'`,
             alias: 'w',
             defaultValue: defaultHighWaterMark,
             description: `Highwatermark used for chunk size when copy method is 'chunk'. Defaults to '${defaultHighWaterMark}'.`,
