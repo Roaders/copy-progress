@@ -4,6 +4,7 @@ import { filter, map, mergeMap, shareReplay, takeLast } from 'rxjs/operators';
 import { dirname } from 'path';
 import { ICopyFileProgressOptions, ICopyOptions, ICopyStats } from '../contracts';
 import { isDefined, isICopyStats } from './type-predicates';
+import chalk from 'chalk';
 
 export class CopyFileHelper<TProgress, TOptions extends Required<ICopyOptions | ICopyFileProgressOptions<TProgress>>> {
     constructor(private readonly options: TOptions) {}
@@ -31,7 +32,12 @@ export class CopyFileHelper<TProgress, TOptions extends Required<ICopyOptions | 
     }
 
     private createDirectory(outPath: string): Observable<string | undefined> {
-        return (this.dirLookup[outPath] = this.dirLookup[outPath] || createDirAsync(outPath));
+        try {
+            return (this.dirLookup[outPath] = this.dirLookup[outPath] || createDirAsync(outPath));
+        } catch (e) {
+            console.log(`${chalk.red('ERR: ')}Error creating directory: ${outPath}`);
+            throw e;
+        }
     }
 
     private copyFileAsync(copyDetails: ICopyStats): Observable<undefined | TProgress> {

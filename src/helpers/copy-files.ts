@@ -15,12 +15,13 @@ import { streamProgress, streamTotal } from './progress.helper';
 import { createScanResult } from './scan-dir.helper';
 import { isICopyStats } from './type-predicates';
 import { promisify } from 'util';
-import { copyFile, createReadStream, createWriteStream, Stats } from 'fs';
+import { constants, copyFile, createReadStream, createWriteStream, Stats } from 'fs';
 import progress from 'progress-stream';
 
 export const defaultOptions: Required<ICopyOptions> = {
     concurrentCopy: 1,
-    copyFunction: (source: string, destination: string) => promisify(copyFile)(source, destination),
+    copyFunction: (source: string, destination: string) =>
+        promisify(copyFile)(source, destination, constants.COPYFILE_EXCL),
 };
 
 type FilesSource = Array<CopyDetails> | Observable<CopyDetails>;
@@ -39,7 +40,11 @@ export function copyFiles<TProgress, TOptions extends ICopyOptions | ICopyFilePr
         requiredOptions as RequiredOptions<TProgress, TOptions>
     );
 
-    const copyStats = (Array.isArray(files) ? from(files) : files).pipe(mergeMap(convertToCopyStats), shareReplay());
+    const copyStats = (Array.isArray(files) ? from(files) : files).pipe(
+        mergeMap(convertToCopyStats),
+        filter((file) => file.stats.isFile()),
+        shareReplay()
+    );
     const totals = streamTotal(copyStats);
     const copyResults = copyStats.pipe(
         mergeMap((copyDetails) => copyHelper.performCopy(copyDetails), requiredOptions.concurrentCopy),
@@ -51,23 +56,39 @@ export function copyFiles<TProgress, TOptions extends ICopyOptions | ICopyFilePr
     return merge(filesProgress, fileProgress);
 }
 
-export const fileStreamCopy: ProgressCopyFileFunction<IStreamProgress> = (
+/**
+ * Copies a single file and provides progress information
+ * @param source file source path
+ * @param destination file destination path
+ * @param stats Stats object containing information about the file
+ * @returns Observable
+ */
+export const fileCopyProgress: ProgressCopyFileFunction<IStreamProgress> = (
     source: string,
     destination: string,
     stats: Stats
 ) => {
+    return fileStreamCopy(source, destination, stats);
+};
+
+export function fileStreamCopy(
+    source: string,
+    destination: string,
+    stats: Stats,
+    highWaterMark?: number
+): Observable<IStreamProgress> {
     return new Observable<IStreamProgress>((subscriber) => {
-        createReadStream(source)
+        createReadStream(source, { highWaterMark })
             .pipe(
                 progress({ length: stats.size }).on('progress', (event) =>
                     subscriber.next({ ...event, type: 'fileStreamProgress', stats: { source, stats } })
                 )
             )
-            .pipe(createWriteStream(destination))
+            .pipe(createWriteStream(destination, { flags: 'wx' }))
             .once('error', (err) => subscriber.error(err))
             .once('finish', () => subscriber.complete());
     });
-};
+}
 
 function convertToCopyStats(value: CopyDetails): Observable<ICopyStats> {
     return isICopyStats(value)
