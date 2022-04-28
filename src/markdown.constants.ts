@@ -5,8 +5,9 @@ export type BarMode = 'files' | 'bytes' | 'both';
 
 export interface ICommandLineArgs {
     sourceDir: string;
-    glob?: string;
     outDir: string;
+    force: boolean;
+    glob?: string;
     concurrentCopy: number;
     eta: boolean;
     speed: boolean;
@@ -29,6 +30,11 @@ export const usageGuideInfo: UsageGuideConfig<ICommandLineArgs> = {
             description: `The source path to copy from.`,
         },
         outDir: { type: String, alias: 'o', description: 'folder to copy to.' },
+        force: {
+            type: Boolean,
+            alias: 'f',
+            description: 'Will overwrite any existing files.',
+        },
         glob: {
             type: String,
             alias: 'g',

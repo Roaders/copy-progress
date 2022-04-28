@@ -20,8 +20,9 @@ import progress from 'progress-stream';
 
 export const defaultOptions: Required<ICopyOptions> = {
     concurrentCopy: 1,
-    copyFunction: (source: string, destination: string) =>
-        promisify(copyFile)(source, destination, constants.COPYFILE_EXCL),
+    force: false,
+    copyFunction: (source: string, destination: string, _: Stats, force?: boolean) =>
+        promisify(copyFile)(source, destination, force ? undefined : constants.COPYFILE_EXCL),
 };
 
 type FilesSource = Array<CopyDetails> | Observable<CopyDetails>;
@@ -66,15 +67,17 @@ export function copyFiles<TProgress, TOptions extends ICopyOptions | ICopyFilePr
 export const fileCopyProgress: ProgressCopyFileFunction<IStreamProgress> = (
     source: string,
     destination: string,
-    stats: Stats
+    stats: Stats,
+    force?: boolean
 ) => {
-    return fileStreamCopy(source, destination, stats);
+    return fileStreamCopy(source, destination, stats, force);
 };
 
 export function fileStreamCopy(
     source: string,
     destination: string,
     stats: Stats,
+    force?: boolean,
     highWaterMark?: number
 ): Observable<IStreamProgress> {
     return new Observable<IStreamProgress>((subscriber) => {
@@ -84,7 +87,7 @@ export function fileStreamCopy(
                     subscriber.next({ ...event, type: 'fileStreamProgress', stats: { source, stats } })
                 )
             )
-            .pipe(createWriteStream(destination, { flags: 'wx' }))
+            .pipe(createWriteStream(destination, force ? undefined : { flags: 'wx' }))
             .once('error', (err) => subscriber.error(err))
             .once('finish', () => subscriber.complete());
     });

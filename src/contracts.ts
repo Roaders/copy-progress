@@ -1,16 +1,28 @@
 import { Stats } from 'fs';
 import { Observable } from 'rxjs';
 
-export type ProgressCopyFileFunction<T> = (source: string, destination: string, fileStats: Stats) => Observable<T>;
-export type AsyncCopyFileFunction = (source: string, destination: string, fileStats: Stats) => Promise<unknown>;
+export type ProgressCopyFileFunction<T> = (
+    source: string,
+    destination: string,
+    fileStats: Stats,
+    force?: boolean
+) => Observable<T>;
+export type AsyncCopyFileFunction = (
+    source: string,
+    destination: string,
+    fileStats: Stats,
+    force?: boolean
+) => Promise<unknown>;
 
 export interface ICopyOptions {
     concurrentCopy?: number;
+    force?: boolean;
     copyFunction?: AsyncCopyFileFunction;
 }
 
 export interface ICopyFileProgressOptions<T> {
     concurrentCopy?: number;
+    force?: boolean;
     copyFunction: ProgressCopyFileFunction<T>;
 }
 
@@ -64,6 +76,7 @@ export interface IFileStats extends IFileDetails {
 
 export interface ICopyDetails extends IFileDetails {
     destination: string;
+    force?: boolean;
 }
 
 export interface ICopyStats extends IFileStats, ICopyDetails {}

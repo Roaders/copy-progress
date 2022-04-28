@@ -29,11 +29,14 @@ async function copyDirProgress() {
         map<IFileStats, ICopyStats>((fileDetails) => ({
             ...fileDetails,
             destination: join(args.outDir, relative(args.sourceDir, fileDetails.source)),
+            force: args.force,
         })),
         shareReplay()
     );
 
     let progressStream: Observable<IStreamProgress | IFilesProgress>;
+
+    const options = { concurrentCopy: args.concurrentCopy, force: args.force };
 
     if (args.chunk) {
         const copyFunction: ProgressCopyFileFunction<IStreamProgress> = (
@@ -41,12 +44,12 @@ async function copyDirProgress() {
             destination: string,
             stats: Stats
         ) => {
-            return fileStreamCopy(source, destination, stats, args.highWaterMark);
+            return fileStreamCopy(source, destination, stats, args.force, args.highWaterMark);
         };
 
-        progressStream = copyFiles(copyStats, { copyFunction, concurrentCopy: args.concurrentCopy });
+        progressStream = copyFiles(copyStats, { ...options, copyFunction });
     } else {
-        progressStream = copyFiles(copyStats, { concurrentCopy: args.concurrentCopy });
+        progressStream = copyFiles(copyStats, options);
     }
 
     const { filesBar, bytesBar, progressBar } = createProgressBars(args);
