@@ -3,3 +3,4 @@ export * from './copy-files';
 export * from './progress.helper';
 export * from './scan-dir.helper';
 export * from './type-predicates';
+export * from './path.helper';

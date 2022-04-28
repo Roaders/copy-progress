@@ -1,18 +1,29 @@
 import { Stats } from 'fs';
 import { Observable } from 'rxjs';
 
-export type ProgressCopyFileFunction<T> = (
-    source: string,
-    destination: string,
-    fileStats: Stats,
-    force?: boolean
-) => Observable<T>;
-export type AsyncCopyFileFunction = (
-    source: string,
-    destination: string,
-    fileStats: Stats,
-    force?: boolean
-) => Promise<unknown>;
+export type BarMode = 'files' | 'bytes' | 'both';
+
+export type CopyProgressOptions = {
+    highWaterMark?: number;
+    force?: boolean;
+};
+
+export interface ICommandLineArgs extends Required<CopyProgressOptions> {
+    sourceDir: string;
+    outDir: string;
+    glob?: string;
+    concurrentCopy: number;
+    eta: boolean;
+    speed: boolean;
+    bar: BarMode;
+    chunk: boolean;
+    help: boolean;
+}
+
+type copyFileArgs = [source: string, destination: string, fileStats: Stats];
+
+export type ProgressCopyFileFunction<T> = (...args: copyFileArgs) => Observable<T>;
+export type AsyncCopyFileFunction = (...args: copyFileArgs) => Promise<unknown>;
 
 export interface ICopyOptions {
     concurrentCopy?: number;

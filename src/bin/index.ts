@@ -2,19 +2,18 @@
 
 import { from, Observable } from 'rxjs';
 import { map, mergeMap, shareReplay } from 'rxjs/operators';
-import { createScanResult, fileStreamCopy, streamScanPathResults } from '../helpers';
+import { configureFileCopyProgressFunction, createScanResult, mapFileStats, streamScanPathResults } from '../helpers';
 import { MultiBar, SingleBar } from 'cli-progress';
 import { parse } from 'ts-command-line-args';
-import { commandName, ICommandLineArgs, usageGuideInfo } from '../markdown.constants';
-import { ICopyStats, IFilesProgress, IFileStats, IStreamProgress, ProgressCopyFileFunction } from '../contracts';
+import { commandName, usageGuideInfo } from '../markdown.constants';
+import { ICommandLineArgs, IFilesProgress, IFileStats, IStreamProgress } from '../contracts';
 import glob, { IOptions } from 'glob';
 import print from 'message-await';
 import chalk from 'chalk';
-import { join, relative, basename, resolve } from 'path';
+import { basename, resolve } from 'path';
 import prettyBytes from 'pretty-bytes';
 import ms from 'ms';
 import { copyFiles } from '../';
-import { Stats } from 'fs';
 
 const barNameLength = 10;
 
@@ -26,11 +25,7 @@ async function copyDirProgress() {
     const files = await loadFiles(args);
 
     const copyStats = files.pipe(
-        map<IFileStats, ICopyStats>((fileDetails) => ({
-            ...fileDetails,
-            destination: join(args.outDir, relative(args.sourceDir, fileDetails.source)),
-            force: args.force,
-        })),
+        map((file) => mapFileStats({ ...args, file })),
         shareReplay()
     );
 
@@ -39,15 +34,10 @@ async function copyDirProgress() {
     const options = { concurrentCopy: args.concurrentCopy, force: args.force };
 
     if (args.chunk) {
-        const copyFunction: ProgressCopyFileFunction<IStreamProgress> = (
-            source: string,
-            destination: string,
-            stats: Stats
-        ) => {
-            return fileStreamCopy(source, destination, stats, args.force, args.highWaterMark);
-        };
-
-        progressStream = copyFiles(copyStats, { ...options, copyFunction });
+        progressStream = copyFiles(copyStats, {
+            ...options,
+            copyFunction: configureFileCopyProgressFunction(args),
+        });
     } else {
         progressStream = copyFiles(copyStats, options);
     }

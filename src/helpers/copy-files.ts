@@ -9,6 +9,8 @@ import {
     ProgressCopyFileFunction,
     IStreamProgress,
     RequiredOptions,
+    CopyProgressOptions,
+    AsyncCopyFileFunction,
 } from '../contracts';
 import { CopyFileHelper } from './copy-file.helper';
 import { streamProgress, streamTotal } from './progress.helper';
@@ -21,8 +23,7 @@ import progress from 'progress-stream';
 export const defaultOptions: Required<ICopyOptions> = {
     concurrentCopy: 1,
     force: false,
-    copyFunction: (source: string, destination: string, _: Stats, force?: boolean) =>
-        promisify(copyFile)(source, destination, force ? undefined : constants.COPYFILE_EXCL),
+    copyFunction: configureSimpleFileCopyFunction(),
 };
 
 type FilesSource = Array<CopyDetails> | Observable<CopyDetails>;
@@ -36,7 +37,11 @@ export function copyFiles<TProgress, TOptions extends ICopyOptions | ICopyFilePr
     files: FilesSource,
     options?: TOptions
 ): Observable<IFilesProgress | TProgress> {
-    const requiredOptions = { ...defaultOptions, ...options };
+    const requiredOptions = {
+        ...defaultOptions,
+        copyFunction: configureSimpleFileCopyFunction({ force: options?.force }),
+        ...options,
+    };
     const copyHelper = new CopyFileHelper<TProgress, RequiredOptions<TProgress, TOptions>>(
         requiredOptions as RequiredOptions<TProgress, TOptions>
     );
@@ -57,6 +62,11 @@ export function copyFiles<TProgress, TOptions extends ICopyOptions | ICopyFilePr
     return merge(filesProgress, fileProgress);
 }
 
+export function configureSimpleFileCopyFunction(options?: { force?: boolean }): AsyncCopyFileFunction {
+    return (source: string, destination: string, _: Stats) =>
+        promisify(copyFile)(source, destination, options?.force ? undefined : constants.COPYFILE_EXCL);
+}
+
 /**
  * Copies a single file and provides progress information
  * @param source file source path
@@ -64,16 +74,23 @@ export function copyFiles<TProgress, TOptions extends ICopyOptions | ICopyFilePr
  * @param stats Stats object containing information about the file
  * @returns Observable
  */
-export const fileCopyProgress: ProgressCopyFileFunction<IStreamProgress> = (
-    source: string,
-    destination: string,
-    stats: Stats,
-    force?: boolean
-) => {
-    return fileStreamCopy(source, destination, stats, force);
-};
+export function configureFileCopyProgressFunction(
+    options?: CopyProgressOptions
+): ProgressCopyFileFunction<IStreamProgress> {
+    return (source: string, destination: string, stats: Stats) =>
+        fileProgressCopy(source, destination, stats, options?.force, options?.highWaterMark);
+}
 
-export function fileStreamCopy(
+/**
+ * Copies a file returning an observable of progress events
+ * @param source
+ * @param destination
+ * @param stats File Stats
+ * @param force Overwrite existing files
+ * @param highWaterMark use by the readStream to read files from the disk
+ * @returns
+ */
+export function fileProgressCopy(
     source: string,
     destination: string,
     stats: Stats,

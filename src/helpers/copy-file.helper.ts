@@ -41,12 +41,7 @@ export class CopyFileHelper<TProgress, TOptions extends Required<ICopyOptions | 
     }
 
     private copyFileAsync(copyDetails: ICopyStats): Observable<undefined | TProgress> {
-        const copyResult = this.options.copyFunction(
-            copyDetails.source,
-            copyDetails.destination,
-            copyDetails.stats,
-            copyDetails.force
-        );
+        const copyResult = this.options.copyFunction(copyDetails.source, copyDetails.destination, copyDetails.stats);
 
         if (isObservable(copyResult)) {
             return copyResult;

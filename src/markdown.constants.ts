@@ -1,21 +1,7 @@
 import chalk from 'chalk';
 import { UsageGuideConfig } from 'ts-command-line-args';
+import { BarMode, ICommandLineArgs } from './contracts';
 
-export type BarMode = 'files' | 'bytes' | 'both';
-
-export interface ICommandLineArgs {
-    sourceDir: string;
-    outDir: string;
-    force: boolean;
-    glob?: string;
-    concurrentCopy: number;
-    eta: boolean;
-    speed: boolean;
-    bar: BarMode;
-    chunk: boolean;
-    highWaterMark: number;
-    help: boolean;
-}
 export const kilobyte = 1024;
 export const commandName = 'copy-progress';
 const defaultConcurrentCopy = 1;

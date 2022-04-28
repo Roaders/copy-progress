@@ -2,7 +2,7 @@ import { join, relative } from 'path';
 import prettyBytes from 'pretty-bytes';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import copyFiles, { fileStreamCopy, streamScanPathResults } from '../src';
+import copyFiles, { configureFileCopyProgressFunction, streamScanPathResults } from '../src';
 import { ICopyDetails, IFilesProgress } from '../src/contracts';
 
 const filesToCopy = streamScanPathResults(join(process.cwd(), 'node_modules'));
@@ -14,7 +14,7 @@ const copyDetails: Observable<ICopyDetails> = filesToCopy.pipe(
     }))
 );
 
-copyFiles(copyDetails, { copyFunction: fileStreamCopy }).subscribe(
+copyFiles(copyDetails, { copyFunction: configureFileCopyProgressFunction() }).subscribe(
     (progress) => {
         switch (progress.type) {
             case 'filesProgress':
