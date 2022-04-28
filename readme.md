@@ -29,6 +29,14 @@ copy-progress -o mySourceFolder -o myDestinationFolder
 ```
 ![Copy Example](https://github.com/Roaders/copy-progress/raw/master/assets/copy-simple.gif)
 
+#### Glob
+
+Glob patterns can be used to filter files within the source directory:
+
+```bash
+copy-progress -o mySourceFolder -o myDestinationFolder -g /**/package.json
+```
+
 #### ETA
 
 ETA can be displayed with `-e` or `--eta`. This is best used for copying larger files:
@@ -57,9 +65,9 @@ copy-progress -o mySourceFolder -o myDestinationFolder -b bytes
 
 | Argument | Alias | Type | Description |
 |-|-|-|-|
-| **sourceDir** | **s** | string | The source path to copy from. Must be specified if 'glob' is not specified |
-| **glob** | **g** | string | glob pattern to copy. Must be specified if 'sourceDir' is not specified. For example: 'myFolder/**/*.js' |
+| **sourceDir** | **s** | string | The source path to copy from. |
 | **outDir** | **o** | string | folder to copy to. |
+| **glob** | **g** | string | glob pattern to copy. The glob pattern is applied within the source directory. For example: 'myFolder/**/*.js' |
 | **concurrentCopy** | | number | number of concurrent copy operations to perform. Defaults to 1 |
 | **eta** | **e** | boolean | shows ETA of copy completion. For a lot of small files can be very inaccurate |
 | **chunk** | **c** | boolean | Copies the files in chunks using a readFileStream and a writeFileStream. 'highWaterMark' determines chunk size |

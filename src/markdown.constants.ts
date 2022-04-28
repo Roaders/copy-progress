@@ -4,7 +4,7 @@ import { UsageGuideConfig } from 'ts-command-line-args';
 export type BarMode = 'files' | 'bytes' | 'both';
 
 export interface ICommandLineArgs {
-    sourceDir?: string;
+    sourceDir: string;
     glob?: string;
     outDir: string;
     concurrentCopy: number;
@@ -25,17 +25,16 @@ export const usageGuideInfo: UsageGuideConfig<ICommandLineArgs> = {
         sourceDir: {
             type: String,
             alias: 's',
-            optional: true,
-            description: `The source path to copy from. Must be specified if 'glob' is not specified`,
+            description: `The source path to copy from.`,
         },
+        outDir: { type: String, alias: 'o', description: 'folder to copy to.' },
         glob: {
             type: String,
             alias: 'g',
             optional: true,
             description:
-                "glob pattern to copy. Must be specified if 'sourceDir' is not specified. For example: 'myFolder/**/*.js'",
+                "glob pattern to copy. The glob pattern is applied within the source directory. For example: 'myFolder/**/*.js'",
         },
-        outDir: { type: String, alias: 'o', description: 'folder to copy to.' },
         concurrentCopy: {
             type: Number,
             defaultValue: defaultConcurrentCopy,

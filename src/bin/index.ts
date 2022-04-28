@@ -7,10 +7,10 @@ import { MultiBar, SingleBar } from 'cli-progress';
 import { parse } from 'ts-command-line-args';
 import { commandName, ICommandLineArgs, usageGuideInfo } from '../markdown.constants';
 import { ICopyStats, IFilesProgress, IFileStats, IStreamProgress, ProgressCopyFileFunction } from '../contracts';
-import glob from 'glob';
+import glob, { IOptions } from 'glob';
 import print from 'message-await';
 import chalk from 'chalk';
-import { join, relative, basename, resolve, sep } from 'path';
+import { join, relative, basename, resolve } from 'path';
 import prettyBytes from 'pretty-bytes';
 import ms from 'ms';
 import { copyFiles } from '../';
@@ -23,12 +23,12 @@ let progressBar: MultiBar;
 async function copyDirProgress() {
     const args = parse<ICommandLineArgs>(usageGuideInfo.arguments, usageGuideInfo.parseOptions);
 
-    const { files, baseSource } = await loadFiles(args);
+    const files = await loadFiles(args);
 
     const copyStats = files.pipe(
         map<IFileStats, ICopyStats>((fileDetails) => ({
             ...fileDetails,
-            destination: join(args.outDir, relative(baseSource, fileDetails.source)),
+            destination: join(args.outDir, relative(args.sourceDir, fileDetails.source)),
         })),
         shareReplay()
     );
@@ -136,18 +136,20 @@ function createProgressBars(args: ICommandLineArgs) {
     return { progressBar, filesBar, bytesBar };
 }
 
-async function loadFiles(args: ICommandLineArgs): Promise<{ files: Observable<IFileStats>; baseSource: string }> {
+async function loadFiles(args: ICommandLineArgs): Promise<Observable<IFileStats>> {
     let files: Observable<IFileStats>;
-    let baseSource: string;
 
     if (args.glob != null) {
-        const filesList = await print(`Scanning ${args.glob}`, { format: chalk.blue }).await(promisifyGlob(args.glob));
+        const cwd = resolve(args.sourceDir);
+        console.log(`Awaiting glob: ${cwd} : ${args.glob}`);
+
+        const filesList = await print(`Scanning ${args.glob}`, { format: chalk.blue }).await(
+            promisifyGlob(args.glob, { cwd, root: cwd })
+        );
         files = from(filesList).pipe(mergeMap(createScanResult));
-        baseSource = longestCommonPath(filesList.map((path) => resolve(path)));
     } else if (args.sourceDir) {
         console.log(chalk.blue(`Scanning ${args.sourceDir}...`));
         files = streamScanPathResults(args.sourceDir);
-        baseSource = resolve(args.sourceDir);
     } else {
         console.log(
             `${chalk.red('ERR:')} 'sourceDir' or 'glob' must be specified. Please see '${commandName} -h' for help.`
@@ -155,28 +157,7 @@ async function loadFiles(args: ICommandLineArgs): Promise<{ files: Observable<IF
         process.exit(1);
     }
 
-    return { files, baseSource };
-}
-
-function longestCommonPath(paths: string[]): string {
-    const pathSegments = paths.map((path) => path.split(sep));
-
-    const longestSplitPath = pathSegments.reduce(
-        (longest, current) => (current.length > longest.length ? current : longest),
-        new Array<string>(0)
-    );
-
-    const testPaths = longestSplitPath
-        .map((_, index) => longestSplitPath.slice(0, index + 1).join(sep))
-        .sort((a, b) => b.length - a.length);
-
-    const shortest = testPaths.find((testPath) => paths.every((path) => path.indexOf(testPath) === 0));
-
-    if (shortest == null) {
-        throw new Error(`COuld not find shortest common path`);
-    }
-
-    return shortest;
+    return files;
 }
 
 function barTitle(name: string): string {
@@ -187,9 +168,9 @@ function barTitle(name: string): string {
     return name;
 }
 
-function promisifyGlob(pattern: string): Promise<string[]> {
+function promisifyGlob(pattern: string, options: IOptions = {}): Promise<string[]> {
     return new Promise((resolve, reject) => {
-        glob(pattern, {}, (err, files) => {
+        glob(pattern, options, (err, files) => {
             if (err != null) {
                 reject(err);
             } else {
