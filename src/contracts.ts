@@ -50,6 +50,8 @@ export interface IFilesProgress {
     completedFiles: number;
     totalBytes: number;
     completedBytes: number;
+    started: number;
+    elapsed: number;
 }
 
 export interface IFileDetails {

@@ -24,6 +24,8 @@ export function streamProgress(results: Observable<IFileStats | ITotals>): Obser
             totalBytes: 0,
             completedFiles: 0,
             completedBytes: 0,
+            started: Date.now(),
+            elapsed: 0,
         })
     );
 }
@@ -34,6 +36,7 @@ function updateProgress(progress: IFilesProgress, result: IFileStats | ITotals):
             ...progress,
             completedBytes: progress.completedBytes + result.stats.size,
             completedFiles: progress.completedFiles + 1,
+            elapsed: Date.now() - progress.started,
         };
     } else if (isITotals(result)) {
         return { ...progress, totalBytes: result.bytes, totalFiles: result.files };

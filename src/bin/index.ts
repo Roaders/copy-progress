@@ -95,7 +95,8 @@ async function copyDirProgress() {
                 bytesBar.update(result.completedBytes, {
                     formattedValue: prettyBytes(result.completedBytes),
                     formattedTotal: prettyBytes(result.totalBytes),
-                    speed: '',
+                    speed:
+                        result.elapsed > 0 ? `${prettyBytes(result.completedBytes / (result.elapsed / 1000))}/s` : '',
                 });
             }
 
@@ -116,10 +117,11 @@ async function copyDirProgress() {
 
 function createProgressBars(args: ICommandLineArgs) {
     const etaFormat = args.eta ? ' | ETA: {eta}s' : '';
+    const speedFormat = args.speed ? ` {speed}` : '';
 
     progressBar = new MultiBar({
         hideCursor: true,
-        format: `{barName} [{bar}] {percentage}%${etaFormat} | {formattedValue}/{formattedTotal} {speed}`,
+        format: `{barName} [{bar}] {percentage}%${etaFormat} | {formattedValue}/{formattedTotal}${speedFormat}`,
     });
 
     let filesBar: SingleBar | undefined;

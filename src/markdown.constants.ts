@@ -8,11 +8,12 @@ export interface ICommandLineArgs {
     glob?: string;
     outDir: string;
     concurrentCopy: number;
-    help: boolean;
     eta: boolean;
+    speed: boolean;
     bar: BarMode;
     chunk: boolean;
     highWaterMark: number;
+    help: boolean;
 }
 export const kilobyte = 1024;
 export const commandName = 'copy-progress';
@@ -49,6 +50,10 @@ export const usageGuideInfo: UsageGuideConfig<ICommandLineArgs> = {
             type: Boolean,
             alias: 'c',
             description: `Copies the files in chunks using a readFileStream and a writeFileStream. 'highWaterMark' determines chunk size`,
+        },
+        speed: {
+            type: Boolean,
+            description: 'shows both overall speed for all files and individual file speed (if chunk is specified)',
         },
         highWaterMark: {
             type: parseBytes,
