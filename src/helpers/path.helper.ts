@@ -5,15 +5,9 @@ export function getDestinationPath(sourceRoot: string, sourcePath: string, desti
     return join(destinationRoot, relative(sourceRoot, sourcePath));
 }
 
-export function mapFileStats(args: {
-    file: IFileStats;
-    sourceDir: string;
-    outDir: string;
-    force?: boolean;
-}): ICopyStats {
+export function mapFileStats(args: { file: IFileStats; sourceDir: string; outDir: string }): ICopyStats {
     return {
         ...args.file,
-        force: args.force,
         destination: getDestinationPath(args.sourceDir, args.file.source, args.outDir),
     };
 }

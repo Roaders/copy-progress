@@ -63,7 +63,7 @@ export function copyFiles<TProgress, TOptions extends ICopyOptions | ICopyFilePr
 }
 
 export function configureSimpleFileCopyFunction(options?: { force?: boolean }): AsyncCopyFileFunction {
-    return (source: string, destination: string, _: Stats) =>
+    return (source: string, destination: string) =>
         promisify(copyFile)(source, destination, options?.force ? undefined : constants.COPYFILE_EXCL);
 }
 

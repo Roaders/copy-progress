@@ -1,0 +1,3 @@
+{
+    "window.title": "copy-progress ${dirty}${activeEditorShort}${separator}${rootName}${separator}${appName}"
+}

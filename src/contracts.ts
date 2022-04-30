@@ -87,7 +87,6 @@ export interface IFileStats extends IFileDetails {
 
 export interface ICopyDetails extends IFileDetails {
     destination: string;
-    force?: boolean;
 }
 
 export interface ICopyStats extends IFileStats, ICopyDetails {}
