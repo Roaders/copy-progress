@@ -1,6 +1,6 @@
 {
     "name": "copy-progress",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "description": "Copies files from a source directory or a glob pattern to another folder and provides progress updates on command line or with progress events. Can be run as cli or with an api.",
     "main": "dist/src/index.js",
     "types": "dist/src/index.d.ts",
