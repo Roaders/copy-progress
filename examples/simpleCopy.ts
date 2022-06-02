@@ -1,16 +1,18 @@
-import { join } from 'path';
+import { join, resolve, parse } from 'path';
 import copyFiles from '../src';
 import { ICopyDetails } from '../src/contracts';
 
-const filesToCopy = ['fileOne.txt', 'fileTwo.txt'];
+const filesToCopy = process.argv.slice(2);
 
 const copyDetails: ICopyDetails[] = filesToCopy.map((source) => ({
-    source,
-    destination: join('outputFolder', source),
+    source: resolve(source),
+    destination: join('outputFolder', parse(source).base),
 }));
 
-copyFiles(copyDetails).subscribe(
-    (progress) => console.log(`Progress: ${progress.completedBytes}/${progress.totalBytes} Bytes`),
-    (error) => console.log(error),
-    () => console.log(`Completed`)
-);
+console.log(`Copying files: ${copyDetails.map((detail) => `${detail.source} => ${detail.destination}`)}`);
+
+copyFiles(copyDetails).subscribe({
+    next: (progress) => console.log(`Progress: ${progress.completedBytes}/${progress.totalBytes} Bytes`),
+    error: (error) => console.log(`Error during copy:`, error),
+    complete: () => console.log(`Completed`),
+});

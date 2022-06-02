@@ -100,9 +100,11 @@ export function fileProgressCopy(
     return new Observable<IStreamProgress>((subscriber) => {
         createReadStream(source, { highWaterMark })
             .pipe(
-                progress({ length: stats.size }).on('progress', (event) =>
-                    subscriber.next({ ...event, type: 'fileStreamProgress', stats: { source, stats } })
-                )
+                progress({ length: stats.size })
+                    .on('progress', (event) =>
+                        subscriber.next({ ...event, type: 'fileStreamProgress', stats: { source, stats } })
+                    )
+                    .once('error', (err) => subscriber.error(err))
             )
             .pipe(createWriteStream(destination, force ? undefined : { flags: 'wx' }))
             .once('error', (err) => subscriber.error(err))
